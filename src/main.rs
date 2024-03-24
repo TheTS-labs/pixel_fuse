@@ -6,9 +6,9 @@ use read::Read;
 use write::Write;
 
 fn main() {
-    let mut write = Write::from("Cargo.toml", 10, 10);
+    let mut write = Write::from("example", 100, 100);
     write.go();
 
-    let read = Read::from("Cargo.toml.gif");
+    let read = Read::from("example.gif");
     read.go();
 }

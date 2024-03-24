@@ -4,7 +4,9 @@ use serde::{Serialize, Deserialize};
 pub struct MetaFrame {
     pub filename: String,
     pub remainder: usize,
-    pub hash: String
+    pub hash: String,
+    pub version: String,
+    pub frames_count: usize,
 }
 
 impl MetaFrame {
