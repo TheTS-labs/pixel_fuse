@@ -11,7 +11,8 @@ use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use crate::meta::MetaFrame;
 
 pub struct Write<'a> {
-  filename: &'a str,
+  input: &'a str,
+  output: &'a str,
   width: u16,
   height: u16,
   frame_size: usize,
@@ -22,7 +23,7 @@ pub struct Write<'a> {
 }
 
 impl Write<'_> {
-    pub fn from(filename: &str, width: u16, height: u16) -> Write {
+    pub fn from<'a>(input: &'a str, output: &'a str, width: u16, height: u16) -> Write<'a> {
         let bar = ProgressBar::new(0);
         bar.enable_steady_tick(Duration::from_millis(300));
         bar.set_style(
@@ -47,7 +48,8 @@ impl Write<'_> {
         bar.set_message("Preparing...");
 
         Write {
-            filename,
+            input,
+            output,
             width,
             height,
             frame_size: (width*height).into(),
@@ -65,7 +67,7 @@ impl Write<'_> {
         let file_size = file.len();
         self.println(format!(
             "Read {} as {} bytes ({})",
-            style(self.filename).cyan().underlined(),
+            style(self.input).cyan().underlined(),
             style(HumanCount(file_size.try_into().unwrap())).cyan(),
             HumanBytes(file_size.try_into().unwrap())
         ));
@@ -103,7 +105,7 @@ impl Write<'_> {
         self.println("Generating meta frame...");
 
         let meta_frame = MetaFrame {
-            filename: self.filename.to_string(),
+            filename: self.input.to_string(),
             remainder: self.remainder.unwrap(),
             hash: self.hash.clone().unwrap(),
             version: env!("CARGO_PKG_VERSION").to_string(),
@@ -127,7 +129,7 @@ impl Write<'_> {
     }
 
     fn write_frames(&self, frames: Vec<&[u8]>) {
-        let mut image_file = File::create(format!("{}.gif", self.filename.replace("/", "_"))).unwrap();
+        let mut image_file = File::create(self.output).unwrap();
         let mut encoder = Encoder::new(&mut image_file, self.width, self.height, &Vec::from_iter(0..255)).unwrap();
         encoder.set_repeat(Repeat::Infinite).unwrap();
 
@@ -146,7 +148,7 @@ impl Write<'_> {
     }
 
     fn get_file_as_bytes(&self) -> Vec<u8> {
-        let mut file = File::open(self.filename).unwrap();
+        let mut file = File::open(self.input).unwrap();
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).unwrap();
 

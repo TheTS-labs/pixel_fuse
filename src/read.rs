@@ -11,12 +11,13 @@ use console::style;
 use crate::meta::MetaFrame;
 
 pub struct Read<'a> {
-    filename: &'a str,
+    input: &'a str,
+    output: &'a str,
     bar: ProgressBar
 }
 
 impl Read<'_> {
-    pub fn from(filename: &str) -> Read {
+    pub fn from<'a>(input: &'a str, output: &'a str) -> Read<'a> {
         let bar = ProgressBar::new(0);
         bar.enable_steady_tick(Duration::from_millis(300));
         bar.set_style(
@@ -40,7 +41,7 @@ impl Read<'_> {
 
         bar.set_message("Preparing...");
         
-        Read { filename, bar }
+        Read { input, output, bar }
     }
 
     pub fn go(&self) {
@@ -55,10 +56,10 @@ impl Read<'_> {
             self.println(format!("{}", style("WARNING: This GIF created with different version of PixelFuse").yellow().bold().underlined()));
         }
 
-        let mut file = File::create(format!("{}.decoded", meta.filename)).unwrap();
+        let mut file = File::create(self.output).unwrap();
         self.println(format!(
             "Writing to {}...",
-            style(format!("{}.decoded", meta.filename)).cyan().underlined(),
+            style(self.output).cyan().underlined(),
         ));
 
         self.bar.set_message("Decoding GIF...");
@@ -103,7 +104,7 @@ impl Read<'_> {
     }
 
     fn get_decoder(&self) -> Decoder<File> {
-        let input = File::open(self.filename).unwrap();
+        let input = File::open(self.input).unwrap();
     
         let mut options = gif::DecodeOptions::new();
         options.set_color_output(gif::ColorOutput::Indexed);
